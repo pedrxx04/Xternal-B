@@ -6,9 +6,13 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: List schemes
+        run: xcodebuild -list -project ThreeOneOSSix.xcodeproj
       - name: Build
         run: |
-          xcodebuild -project ThreeOneOSSix.xcodeproj -scheme ThreeOneOSSix -configuration Release -sdk iphoneos -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          SCHEME=$(xcodebuild -list -json -project ThreeOneOSSix.xcodeproj | python3 -c "import sys,json; s=json.load(sys.stdin)['project']['schemes']; print(next((x for x in s if 'test' not in x.lower()), s[0]))")
+          echo "Scheme: $SCHEME"
+          xcodebuild -project ThreeOneOSSix.xcodeproj -scheme "$SCHEME" -configuration Release -sdk iphoneos -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
       - name: Package IPA
         run: |
           mkdir Payload
